@@ -605,9 +605,9 @@ FSnapCameraData USnapCameraManager::MakePresetData(ESnapPreset Preset) const
 	case ESnapPreset::ChargeAttack:
 		D.Phase = ESnapPhase::ChargeAttack;
 		D.TargetPivotLocation = FVector(0.f, 0.f, 50.f); // z -50 
-		D.TargetArmLength = 400.f;
-		D.TargetFOV = 90.f; 
-		D.OutDuration = 0.3f;
+		D.TargetArmLength = 150.f;
+		D.TargetFOV = 80.f; 
+		D.OutDuration = 0.5f;
 	case ESnapPreset::EnemyEmote:
 		D.Phase = ESnapPhase::EnemyEmote;
 		D.TargetPivotLocation = FVector::ZeroVector; // 따로 설정함

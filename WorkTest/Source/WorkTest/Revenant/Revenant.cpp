@@ -88,7 +88,7 @@ void ARevenant::BeginPlay()
 	bIsTreeActive= false;	
 
 	FTimerHandle timer;
-	GetWorld()->GetTimerManager().SetTimer(timer, this, &ARevenant::StatusInit,0.3f,false);
+	GetWorld()->GetTimerManager().SetTimer(timer, this, &ARevenant::StatusInit,0.5f,false);
 	
 	//bIsTreeActive = false;
 
@@ -98,11 +98,11 @@ void ARevenant::BeginPlay()
 }
 void ARevenant::StatusInit()
 {
-	BossStatusInitialize(100, 10);
+	BossStatusInitialize(100, 20);
 	
 	Target->SetBoss(this);
 	
-	FText bossName = FText::FromString("EmptyHairNone :: YatChu"); 
+	FText bossName = FText::FromString("BossName :: Empty"); 
 	Target->GetWidget()->OnSetBossName(bossName);
 }
 // Called every frame
@@ -145,8 +145,8 @@ void ARevenant::CreateAttackCollision(FVector _halfSize, float _end)
 	const FVector CollisionStart = GetActorLocation() + F * 50.f;
 	const FVector CollisionEnd = GetActorLocation() + F * End;
 
-	DrawDebugSphere(GetWorld(), CollisionStart, 32.0f, 16, FColor::Blue, false, 1.0f);
-	DrawDebugSphere(GetWorld(), CollisionEnd, 32.0f, 16, FColor::Green, false, 1.0f);
+	//DrawDebugSphere(GetWorld(), CollisionStart, 32.0f, 16, FColor::Blue, false, 1.0f);
+	//DrawDebugSphere(GetWorld(), CollisionEnd, 32.0f, 16, FColor::Green, false, 1.0f);
 
 	TArray<FHitResult> OutHits;
 	FRotator Orient = GetActorRotation();
@@ -171,7 +171,7 @@ void ARevenant::CreateAttackCollision(FVector _halfSize, float _end)
 	//FVector Center = (CollisionStart + CollisionEnd) * 0.5f;
 	//FVector BoxExtend = _halfSize;
 
-	DrawDebugBox(GetWorld(), CoverCenter, CoverExtent, Rot, FColor::Blue, false, 0.5f);
+	//DrawDebugBox(GetWorld(), CoverCenter, CoverExtent, Rot, FColor::Blue, false, 0.5f);
 	if (bHit)
 	{
 		for (const FHitResult& HitActor : OutHits)
@@ -344,7 +344,7 @@ bool ARevenant::CheckDistance()
 {
 	if (!Target) return false;
 	float Dist = FVector::Dist(Target->GetActorLocation(), GetActorLocation());
-	GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Yellow, FString::Printf(TEXT("[Revenant] Dist : %f"), Dist));
+	//GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Yellow, FString::Printf(TEXT("[Revenant] Dist : %f"), Dist));
 	if (Dist >= 300)
 	{
 		return false;
@@ -359,7 +359,7 @@ void ARevenant::CastExplosion()
 {
 	if (RevenantState != ERevenantState::CastCharging) return;
 
-	GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Green,TEXT("[Revenant] CastExplosion"));
+	//GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Green,TEXT("[Revenant] CastExplosion"));
 	AnimInstance->SetAnimState(ERevenantAnimState::Cast);
 
 	float Radius = 1000.0f;
@@ -445,8 +445,12 @@ void ARevenant::CheckCurrentHP()
 	//AddHP(-Damage);
 	AddBossHP(-Damage);
 	AddBossMP(-1);
-	GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Magenta, FString::Printf(TEXT("HP : %f"), CurrentHP));
+	//GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Magenta, FString::Printf(TEXT("HP : %f"), CurrentHP));
 
+	if (CurrentMP<= 5.0f)
+	{
+		SetGroggy();
+	}
 	if (CurrentHP <= 0.0f)
 	{
 		RevenantState = ERevenantState::Death;
@@ -455,7 +459,7 @@ void ARevenant::CheckCurrentHP()
 	}
 	else if (CurrentHP <= 50.f && !bIsSecondPhase)
 	{
-		GEngine->AddOnScreenDebugMessage(-1, 3.0f, FColor::Green,TEXT("SecondPhase돌입"));
+		//GEngine->AddOnScreenDebugMessage(-1, 3.0f, FColor::Green,TEXT("SecondPhase돌입"));
 		
 		// 입력 및 BT 막기단계
 		FirstPhaseFlow();
@@ -485,13 +489,13 @@ void ARevenant::FirstPhaseFlow()
 	//TWeakObjectPtr<ARevenant> WeakThis;
 
 	FTimerHandle timerHandle;
-	GetWorld()->GetTimerManager().SetTimer(timerHandle, this, &ARevenant::SecondPhaseFlow, 1.5f, false);
+	GetWorld()->GetTimerManager().SetTimer(timerHandle, this, &ARevenant::SecondPhaseFlow, 0.5f, false);
 	//GetWorld()->GetTimerManager().SetTimer(timerHandle, this, &ARevenant::ThidPhaseFlow, 3.f, false);
 }
 
 void ARevenant::SecondPhaseFlow()
 {
-	GEngine->AddOnScreenDebugMessage(-1, 3.0f, FColor::Green,TEXT("SecondPhase 2"));
+	//GEngine->AddOnScreenDebugMessage(-1, 3.0f, FColor::Green,TEXT("SecondPhase 2"));
 
 	Target->ToggleCamera(false, 0.f);
 	
@@ -500,7 +504,7 @@ void ARevenant::SecondPhaseFlow()
 	Target->MoveEmotePointActor();
 	
 	// SetSecondPhaseMesh(); BP 로 역할넘겨
-	CameraAction_SecondPhase();
+	CameraAction_SecondPhase(); // 블루프린트에서 동작
 	
 	//Target->SetMeshEnable(false);
 	
@@ -515,9 +519,7 @@ void ARevenant::ThirdPhaseFlow()
 	// 배경음악 가동?
 	Target->GetWidget()->ToggleView();
 	AliceController->SetOnLookActive(true);
-
-
-
+	
 	GetWorld()->GetTimerManager().ClearTimer(PhaseTimerHandle);
 	//FTimerHandle PhaseHandle;
 	GetWorld()->GetTimerManager().SetTimer(PhaseTimerHandle, this, &ARevenant::SetTreeActive, 0.8f, false);

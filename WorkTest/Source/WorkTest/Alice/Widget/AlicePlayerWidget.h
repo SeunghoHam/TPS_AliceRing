@@ -26,11 +26,17 @@ class WORKTEST_API UAlicePlayerWidget : public UUserWidget
 
 public:
 	virtual void NativeOnInitialized() override;
+	//virtual bool Initialize() override;
 	// 위젯이 사용할 데이터 (BP에서 인스턴스 편집 가능, 스폰 시 전달 가능)
 	//UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Dialogue", meta=(ExposeOnSpawn=true))
 	//TSubclassOf<UDialogueDataAsset> DialogueDataAsset;
-	UDialogueDataAsset* DialogueData = nullptr;
 
+	//UPROPERTY(EditAnywhere, Category="Dialogue")
+	//TSubclassOf<UDialogueDataAsset> DialogueDataAsset = nullptr;
+	
+	UPROPERTY(EditAnywhere,BlueprintReadOnly,Category=Dialogue)
+	UDialogueDataAsset* DialogueData;
+	
 	// 화면에 찍을 TextBlock (UMG에서 이름을 Dialogue로)
 	UPROPERTY(meta=(BindWidget))
 	UTextBlock* Dialogue = nullptr;

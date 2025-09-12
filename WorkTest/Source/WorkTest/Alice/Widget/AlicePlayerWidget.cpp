@@ -13,6 +13,7 @@
 #include "Components/Image.h"
 #include "Revenant/Revenant.h"
 #include "Components/Button.h"
+#include "ProfilingDebugging/BootProfiling.h"
 #define LOCTEXT_NAMESPACE "HPText"
 
 void UAlicePlayerWidget::NativeOnInitialized()
@@ -20,12 +21,18 @@ void UAlicePlayerWidget::NativeOnInitialized()
 	Super::NativeOnInitialized();
 	if (Dialogue) Dialogue->SetText(FText::GetEmpty());
 
-	RestartBtn->OnClicked.AddDynamic(this, &UAlicePlayerWidget::RestartBossStage);	
-}
+	RestartBtn->OnClicked.AddDynamic(this, &UAlicePlayerWidget::RestartBossStage);
 
+	
+}
 bool UAlicePlayerWidget::ShowByKey(FName Key)
 {
-	if (!DialogueData || !Dialogue) return false;
+	if (!DialogueData || !Dialogue)
+	{
+		if (!DialogueData) GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::White,TEXT("DialogueData"));
+		if (!Dialogue)GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::White,TEXT("Dialogue"));
+		return false;
+	}
 
 	FText Line;
 	if (DialogueData->GetLineByKey(Key, Line))
@@ -38,7 +45,12 @@ bool UAlicePlayerWidget::ShowByKey(FName Key)
 
 bool UAlicePlayerWidget::ShowByIndex(int32 Index)
 {
-	if (!DialogueData || !Dialogue) return false;
+	if (!DialogueData || !Dialogue)
+	{
+		GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::White,TEXT("ShowByIndex"));
+		
+		return false;
+	}
 
 	FText Line;
 	if (DialogueData->GetLineByIndex(Index, Line))
@@ -95,7 +107,7 @@ void UAlicePlayerWidget::DiedPanelActive(bool _active)
 
 void UAlicePlayerWidget::RestartBossStage()
 {
-	GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::White, TEXT("RestartButton"));
+	//GEngine	->AddOnScreenDebugMessage(-1, 1.0f, FColor::White, TEXT("RestartButton"));
 	// 1. 일단 화면을 어둡게 해
 	// 2. 위치를 Emote로 설정
 	// 3. 화면을 밝게 만드렁
@@ -174,14 +186,14 @@ void UAlicePlayerWidget::OnBossHPChanged(float Current, float Max)
 		
 		return;
 	}
-	GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Yellow, TEXT("OnBossHPChanged"));
+	//GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Yellow, TEXT("OnBossHPChanged"));
 
 	
 	//const float Pct = (Max <= 0.f) ? 0.f : FMath::Clamp(Current / Max, 0.f, 1.f);
 	const float Pct = Current / Max;
 	BossHPBar->SetPercent(Pct);
 	
-	GEngine->AddOnScreenDebugMessage(-1, 3.0f, FColor::Yellow, FString::Printf(TEXT("pct : %f"),Current / Max));
+	//GEngine->AddOnScreenDebugMessage(-1, 3.0f, FColor::Yellow, FString::Printf(TEXT("pct : %f"),Current / Max));
 	
 	const FText Format = FText::Format(
 		LOCTEXT("BossHPText", "{0} / {1}"),
@@ -222,7 +234,7 @@ void UAlicePlayerWidget::RefreshAllNow()
 	if (Revenant)
 	{
 		OnBossHPChanged(Revenant->GetCurrentHP(), Revenant->GetMaxHP());
-		OnBossMPChanged(Revenant->GetCurrentHP(), Revenant->GetMaxMP());
+		OnBossMPChanged(Revenant->GetCurrentMP(), Revenant->GetMaxMP());
 	//GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Green, FString::Printf(TEXT("[ Revenant in Widget ] : %s"),*Revenant->GetName()));
 		
 	}

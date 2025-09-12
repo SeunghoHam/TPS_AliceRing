@@ -46,8 +46,8 @@ public:
 
 	void BlockingVolumeActive(bool _value);
 
-	UPROPERTY(EditAnywhere)
-	TSubclassOf<UDialogueDataAsset> DialogueDataAsset;
+	//UPROPERTY(EditAnywhere)
+	//TSubclassOf<UDialogueDataAsset> DialogueDataAsset;
 	
 	//UDialogueDataAsset* DialogueData;
 
@@ -149,10 +149,10 @@ public:
 	//TArray<ADoroSpawnPoint*> SpanwPointArray;
 	//TArray<TObjectPtr<ADoroSpawnPoint>> DoroSpawnPointArray;
 
-	UPROPERTY(EditAnywhere,BlueprintReadWrite)
-	TObjectPtr<AActor> Portal;
-	UFUNCTION(BlueprintImplementableEvent)
-	void PortalDestroy();
+	//UPROPERTY(EditAnywhere,BlueprintReadWrite)
+	//TObjectPtr<AActor> Portal;
+	//UFUNCTION(BlueprintImplementableEvent)
+	//void PortalDestroy();
 	
 	//UFUNCTION(BlueprintImplementableEvent)
 	void BossBattleSetting();
@@ -207,6 +207,13 @@ private:
 
 	FTimerHandle VideoDelayTimer;
 
+
+
+	void ChargeAttackMoveStart();
+	float ChargeMoveElapsedTime=0.f;
+	bool bIsChargeMove =false;
+	FVector ChargeMoveStartLoc = FVector::ZeroVector;
+	FVector ChargeMoveEndLoc = FVector::ZeroVector;
 
 
 	// 카메라 변경시키기요

@@ -126,7 +126,7 @@ void AAlice::BeginPlay()
 
 	if (SnapManager)
 	{
-		GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Cyan, TEXT("Get SnapCamera"));
+		//GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Cyan, TEXT("Get SnapCamera"));
 		SnapManager->Initialize(FollowCamera, SpringArm, ShoulderPivot); // 카메라 전달
 	}
 	AnimInstance->SetAliceAnimState(EAliceAnimState::Idle);
@@ -144,24 +144,34 @@ void AAlice::BeginPlay()
 		GEngine->AddOnScreenDebugMessage(-1, 3.0f, FColor::Red, TEXT("AlicePlayerWidgetClass = null"));
 	}
 
+	/*
 	if (DialogueDataAsset!= nullptr)
 	{
-		
 		PlayerWidget->DialogueData = Cast<UDialogueDataAsset>( DialogueDataAsset.Get());
 	}
 	else
 	{
 		GEngine->AddOnScreenDebugMessage(-1, 3.0f, FColor::Red, TEXT("DialogueDataAsset = null"));
 	}
-
+*/
 	AttachWeapon(WeaponTemplate);
 
-	
+
+	// 정규모드. 게임상태라면 이 밑부분 사용
 	UpdateHuntUI();
 	GetWidget()->DiedPanelActive(false);
-	GetWidget()->BossUIActive(false);
-	GetWorld()->GetTimerManager().SetTimer(DoroSpawnTimer, this, &AAlice::SpawnDoro, 1.0f, false);
+	//GetWidget()->BossUIActive(false);
+	//GetWorld()->GetTimerManager().SetTimer(DoroSpawnTimer, this, &AAlice::SpawnDoro, 1.0f, false);
 	//SetTarget();
+
+	
+	// 바로 보스처리모드 게임상태라면 이 밑부분 주석처리
+	PlayerWidget->ChangeQuestName();
+	PlayerWidget->QuestDirection->SetVisibility(ESlateVisibility::Hidden);
+	BossBattleSetting();
+	GetWidget()->BossUIActive(true);
+	GetWidget()->Dialogue->SetVisibility(ESlateVisibility::Visible);
+	GetWidget()->ShowPlayer();
 }
 
 void AAlice::Tick(float DeltaTime)
@@ -174,6 +184,14 @@ void AAlice::Tick(float DeltaTime)
 		SnapManager->TickSnap(DeltaTime); // 스냅은 그 다음에 적용되도록
 	}
 
+	if (bIsChargeMove)
+	{
+		ChargeMoveElapsedTime += DeltaTime;
+		float Alpha = FMath::Clamp(ChargeMoveElapsedTime / 0.3f, 0.f ,1.0f);
+		FVector CurrentLocation = FMath::Lerp(ChargeMoveStartLoc, ChargeMoveEndLoc, Alpha);
+		SetActorLocation(CurrentLocation);
+		if (Alpha >= 1.0f)bIsChargeMove = false;
+	}
 	if (bIsCharged) // 차지모드 활성화
 	{
 		// 우클릭 차지 상태
@@ -259,7 +277,7 @@ void AAlice::CloseComboWindow()
 		}
 		else
 		{
-			GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Cyan, TEXT("최대콤보. 아무것도 안하기"));
+			//GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Cyan, TEXT("최대콤보. 아무것도 안하기"));
 		}
 		// 끝나면 다음거로 진행하도록
 	}
@@ -349,8 +367,8 @@ void AAlice::SetTarget()
 		return;
 	}
 	CurrentTarget = Cast<AZZZEnemy>(EnemyTarget);
-	GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Blue,
-	                                 FString::Printf(TEXT("현재 타겟 : %s"), *CurrentTarget->GetName()));
+	//GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Blue,
+	 //                                FString::Printf(TEXT("현재 타겟 : %s"), *CurrentTarget->GetName()));
 }
 
 void AAlice::LookTarget()
@@ -392,7 +410,7 @@ void AAlice::AttachWeapon(TSubclassOf<AActor> _weapon)
 
 		if (WeaponSocket && SpawnWeapon)
 		{
-			GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Red, TEXT("[Alice] WeaponAttach"));
+			//GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Red, TEXT("[Alice] WeaponAttach"));
 
 			//"Engine/SkeletalMeshSocket.h" 헤더파일 필요
 			WeaponSocket->AttachActor(SpawnWeapon, GetMesh());
@@ -535,8 +553,8 @@ void AAlice::LM_Press()
 	}
 	else
 	{
-		GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Red,
-		                                 FString::Printf(TEXT("Target : %s"), *CurrentTarget->GetName()));
+		//GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Red,
+		 //                                FString::Printf(TEXT("Target : %s"), *CurrentTarget->GetName()));
 	}
 	// 오프셋 조금 설정하기
 	SnapManager->EnableSoftLock(CurrentTarget, FVector(0, 0, -80.f));
@@ -557,6 +575,8 @@ void AAlice::Rm_Press()
 		if (CurrentTarget)
 		{
 			SnapManager->EnableSoftLock(CurrentTarget);
+			SnapManager->StartSnapPreset(ESnapPreset::ChargeAttack, CurrentTarget);
+
 		}
 	}
 	else
@@ -608,8 +628,9 @@ void AAlice::RM_Release()
 		AnimInstance->SetAliceAnimState(EAliceAnimState::ChargeAttack);
 		PlayerWidget->IsChargeState = false;
 		PlayerWidget->SetBackGroundReset();
-		SnapManager->StartSnapPreset(ESnapPreset::ChargeAttack, CurrentTarget);
+		SnapManager->StartSnapPreset(ESnapPreset::Return, CurrentTarget);
 		bIsCharged = false;
+		ChargeAttackMoveStart();
 		//SoundComponent->Play(ESoundName::vocal_Laugh, GetMesh(),FName("Mouth"));
 	}
 }
@@ -654,7 +675,7 @@ void AAlice::Shift_Press()
 		AttackState = EAttackState::Idle;
 		AnimInstance->SetAliceAnimState(EAliceAnimState::Idle);
 		EndBulletTime();
-		GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Green, TEXT("Avoid End!"));
+		//GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Green, TEXT("Avoid End!"));
 	}, refreshTime, false);
 }
 
@@ -665,14 +686,14 @@ void AAlice::Shift_Release()
 
 void AAlice::R_Press()
 {
-	GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Yellow,TEXT("[Alice] R_Press"));
+	//GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Yellow,TEXT("[Alice] R_Press"));
 
 	// 포탈 바라보면서 사라지게 하기
 	SpringArm->bUsePawnControlRotation = false;
 	bUseControllerRotationYaw = true; // 캐릭터가 카메라 회전에 따라 회전되지 않도록
 	SpringArm->bInheritYaw = false; // 좌우 움직임
 	GetWidget()->FullImageShow(true);
-	PortalDestroy();
+	//PortalDestroy();
 
 	FTimerHandle handle;
 	GetWorld()->GetTimerManager().SetTimer(handle,this, &AAlice::BossBattleSetting, 1.5f, false);
@@ -687,7 +708,8 @@ void AAlice::BossBattleSetting()
 	bUseControllerRotationYaw = false; // 캐릭터가 카메라 회전에 따라 회전되지 않도록
 	SpringArm->bInheritYaw = true; // 좌우 움직임
 
-	GetWidget()->BossUIActive(true);
+	//GetWidget()->Dialogue->SetVisibility(true);
+	//GetWidget()->Dialogue;//(true);
 
 
 	TWeakObjectPtr<AAlice> WeakThis(this);
@@ -703,7 +725,7 @@ void AAlice::BossBattleSetting()
 void AAlice::AvoidAction()
 {
 	Super::AvoidAction();
-	GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Yellow,TEXT("[Alice] Avoid Success"));
+	//GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Yellow,TEXT("[Alice] Avoid Success"));
 	StartBulletTime(0.4f, 0.9f, 0.8f);
 }
 
@@ -712,7 +734,7 @@ void AAlice::CheckCurrentHP()
 	if (AttackState == EAttackState::Action) return;
 	AddHP(-Damage);
 	AddMP(-1);
-	GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::White, FString::Printf(TEXT("CurrentHP : %f"), CurrentHP));
+	//GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::White, FString::Printf(TEXT("CurrentHP : %f"), CurrentHP));
 	if (CurrentHP <= 0.f)
 	{
 		Death();
@@ -784,7 +806,7 @@ void AAlice::TryParring()
 	}
 	else
 	{
-		GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Blue, TEXT("도로 화 안남"));
+		//GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Blue, TEXT("도로 화 안남"));
 	}
 }
 
@@ -844,8 +866,8 @@ AActor* AAlice::FindNearestEnemy_Registry(float MaxRadius)
 
 void AAlice::SetBoss(ARevenant* _boss)
 {
-	GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Magenta,
-	                                 FString::Printf(TEXT("[Alice] Boss : %s"), *_boss->GetName()));
+	//GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Magenta,
+	 //                                FString::Printf(TEXT("[Alice] Boss : %s"), *_boss->GetName()));
 	Boss = _boss;
 	if (PlayerWidget)
 	{
@@ -959,10 +981,10 @@ FVector AAlice::CheckFront(float _length)
 	{
 		maxLocation = Hit.Location + (Hit.ImpactNormal * 50);
 		maxLocation.Z = GetActorLocation().Z;
-		DrawDebugSphere(GetWorld(), maxLocation, 32.f, 16, FColor::Green, false, 1.0f);
+		//DrawDebugSphere(GetWorld(), maxLocation, 32.f, 16, FColor::Green, false, 1.0f);
 		return maxLocation;
 	}
-	DrawDebugLine(GetWorld(), GetActorLocation(), GetActorForwardVector() * _length, FColor::White, false, 1.0f);
+	//DrawDebugLine(GetWorld(), GetActorLocation(), GetActorForwardVector() * _length, FColor::White, false, 1.0f);
 	return maxLocation;
 }
 
@@ -972,6 +994,16 @@ void AAlice::RandomAttackVocal()
 		ESoundName::vocal2, ESoundName::vocal3, ESoundName::vocal4, ESoundName::vocal5, ESoundName::vocal7
 	};
 	PlayRandomSound(arr, 1.0f);
+}
+
+void AAlice::ChargeAttackMoveStart()
+{
+	ChargeMoveElapsedTime= 0.f;
+	bIsChargeMove =true;
+	ChargeMoveStartLoc = GetActorLocation();
+
+	FVector dir = (GetActorLocation()- Boss->GetActorLocation()).GetSafeNormal(); 
+	ChargeMoveEndLoc =Boss->GetActorLocation() + (dir * 200.f);
 }
 
 void AAlice::ToggleCamera(bool _isMine, float _blendtime)

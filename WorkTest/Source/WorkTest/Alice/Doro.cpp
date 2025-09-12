@@ -252,7 +252,7 @@ FVector ADoro::CheckFront(float _length)
 		ECC_Visibility, Params);
 	if (bHit)
 	{
-		GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Yellow, FString::Printf(TEXT("Hitactor: %s"), * Hit.GetActor()->GetName()));
+		//GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Yellow, FString::Printf(TEXT("Hitactor: %s"), * Hit.GetActor()->GetName()));
 		maxLocation =  Hit.Location + (Hit.ImpactNormal*50);
 		maxLocation.Z = GetActorLocation().Z;
 		//DrawDebugSphere(GetWorld(),maxLocation,32.f,16,FColor::Green,false,1.0f);
@@ -271,7 +271,8 @@ void ADoro::HopStart()
 void ADoro::TryHop()
 {
 	bIsLanded = false;
-	SetMoveDir(true);
+	//SetMoveDir(true);
+	SetMoveDir(false); // 포폴 영상찍기용으로 false로 해둠
 	LookTarget();
 	if (!GetCharacterMovement()->IsFalling() && TimeSinceLastHop >= MinHopInterval)
 	{

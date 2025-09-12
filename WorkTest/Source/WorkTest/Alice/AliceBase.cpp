@@ -98,7 +98,7 @@ void AAliceBase::SetCurrentMP(float NewMP)
 
 void AAliceBase::SetBossCurrentHP(float NewHP)
 {
-	GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Yellow, TEXT("setcurnretHP"));
+	//GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Yellow, TEXT("setcurnretHP"));
 	
 	MaxHP = FMath::Max(1.f, MaxHP);
 	CurrentHP = FMath::Clamp(NewHP, 0.f, MaxHP);
@@ -124,7 +124,7 @@ void AAliceBase::AddMP(float Delta)
 
 void AAliceBase::AddBossHP(float Delta)
 {
-	GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Yellow, TEXT("AddBossHP"));
+	//GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Yellow, TEXT("AddBossHP"));
 	SetBossCurrentHP(CurrentHP + Delta);
 }
 
@@ -171,7 +171,7 @@ void AAliceBase::ShowDamage(float _damage)
 	Point.Z += z;
 	if (ADamageNumberActor* actor = DamageNumberSubsystem->Acquire(AliceController))
 	{
-		GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Green, TEXT("DT Show"));
+		// GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Green, TEXT("DT Show"));
 		actor->Show(_damage, false,Point,FColor::White, 0.8f );
 	}
 }
